@@ -27,10 +27,24 @@ import { BarberiaService } from '../../core/services/barberia.service';
           </div>
         </div>
         <div class="stat-card glass">
-          <i class="fas fa-scissors"></i>
+          <i class="fas fa-clock"></i>
           <div>
-            <h3>Barberos</h3>
-            <span class="value">{{ totalBarberos() }}</span>
+            <h3>Horarios</h3>
+            <span class="value">{{ totalHorarios() }}</span>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <i class="fas fa-credit-card"></i>
+          <div>
+            <h3>Pagos</h3>
+            <span class="value">{{ totalPagos() }}</span>
+          </div>
+        </div>
+        <div class="stat-card glass">
+          <i class="fas fa-dollar-sign"></i>
+          <div>
+            <h3>Ganancias</h3>
+            <span class="value">{{ totalGanancias() | currency }}</span>
           </div>
         </div>
       </div>
@@ -38,18 +52,22 @@ import { BarberiaService } from '../../core/services/barberia.service';
   `,
   styles: `
     .dashboard-container { padding: 2rem; color: white; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 2rem; }
-    .stat-card { padding: 24px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; display: flex; align-items: center; gap: 20px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
-    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border-color: #ffb703; }
-    .stat-card i { font-size: 2.5rem; color: #ffb703; }
-    .stat-card h3 { margin: 0; font-size: 1rem; color: rgba(255, 255, 255, 0.6); }
-    .stat-card .value { font-size: 2rem; font-weight: 700; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 2rem; }
+    .stat-card { padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-5px); border-color: #ffb703; background: rgba(255, 255, 255, 0.08); }
+    .stat-card i { font-size: 1.8rem; color: #ffb703; }
+    .stat-card h3 { margin: 0; font-size: 0.85rem; color: rgba(255, 255, 255, 0.6); }
+    .stat-card .value { font-size: 1.3rem; font-weight: 700; }
   `
 })
 export class DashboardComponent implements OnInit {
   public totalCitas = signal<number>(0);
   public totalClientes = signal<number>(0);
   public totalBarberos = signal<number>(0);
+  public totalServicios = signal<number>(0);
+  public totalHorarios = signal<number>(0);
+  public totalPagos = signal<number>(0);
+  public totalGanancias = signal<number>(0);
 
   constructor(private barberiaService: BarberiaService) {}
 
@@ -61,5 +79,14 @@ export class DashboardComponent implements OnInit {
     this.barberiaService.getCitas().subscribe(data => this.totalCitas.set(data.length));
     this.barberiaService.getClientes().subscribe(data => this.totalClientes.set(data.length));
     this.barberiaService.getBarberos().subscribe(data => this.totalBarberos.set(data.length));
+    this.barberiaService.getServicios().subscribe(data => this.totalServicios.set(data.length));
+    this.barberiaService.getHorarios().subscribe(data => this.totalHorarios.set(data.length));
+    this.barberiaService.getPagos().subscribe(data => {
+      this.totalPagos.set(data.length);
+      const sum = data.reduce((acc, p) => acc + (p.monto || 0), 0);
+      this.totalGanancias.set(sum);
+    });
   }
 }
+
+

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Barbero, Cliente, Servicio, Cita } from '../models/barberia.models';
+import { Barbero, Cliente, Servicio, Cita, Horario, Pago } from '../models/barberia.models';
 
 @Injectable({
   providedIn: 'root'
@@ -70,4 +70,31 @@ export class BarberiaService {
   deleteCita(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/citas/${id}`);
   }
+
+  // Horarios
+  getHorarios(): Observable<Horario[]> {
+    return this.http.get<Horario[]>(`${this.apiUrl}/horarios`);
+  }
+
+  saveHorario(horario: Horario): Observable<Horario> {
+    return this.http.post<Horario>(`${this.apiUrl}/horarios`, horario);
+  }
+
+  deleteHorario(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/horarios/${id}`);
+  }
+
+  // Pagos
+  getPagos(): Observable<Pago[]> {
+    return this.http.get<Pago[]>(`${this.apiUrl}/pagos`);
+  }
+
+  savePago(pago: Pago): Observable<Pago> {
+    return this.http.post<Pago>(`${this.apiUrl}/pagos`, pago);
+  }
+
+  deletePago(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/pagos/${id}`);
+  }
 }
+
