@@ -2,7 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
-import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/models/barberia.models';
+import { AuthService } from '../../../core/services/auth.service';
+import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core/models/barberia.models';
 
 @Component({
   selector: 'app-cita-list',
@@ -11,9 +12,9 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/mode
   template: `
     <div class="module-container">
       <div class="module-header">
-        <h2>Gestión de Citas</h2>
-        <button class="btn btn-primary" (click)="abrirModal()">
-          <i class="fas fa-plus"></i> Nueva Cita
+        <h2>{{ authService.hasRole(Rol.CLIENTE) ? 'Mis Citas' : 'Gestión de Citas' }}</h2>
+        <button *ngIf="!authService.hasRole(Rol.BARBERO)" class="btn btn-primary" (click)="abrirModal()">
+          <i class="fas fa-plus"></i> {{ authService.hasRole(Rol.CLIENTE) ? 'Agendar Cita' : 'Nueva Cita' }}
         </button>
       </div>
       
@@ -28,7 +29,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/mode
               <th>Fecha</th>
               <th>Hora</th>
               <th>Estado</th>
-              <th>Acciones</th>
+              <th *ngIf="!authService.hasRole(Rol.CLIENTE)">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -44,19 +45,19 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/mode
                   {{ cita.estado }}
                 </span>
               </td>
-              <td>
+              <td *ngIf="!authService.hasRole(Rol.CLIENTE)">
                 <div class="actions-group">
                   <button class="btn-icon edit" (click)="editar(cita)">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn-icon delete" (click)="eliminar(cita.idCita!)">
+                  <button *ngIf="authService.hasRole(Rol.ADMIN)" class="btn-icon delete" (click)="eliminar(cita.idCita!)">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
               </td>
             </tr>
             <tr *ngIf="citas().length === 0">
-              <td colspan="8" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
+              <td [attr.colspan]="authService.hasRole(Rol.CLIENTE) ? 7 : 8" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
                 No hay citas registradas.
               </td>
             </tr>
@@ -74,7 +75,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/mode
         </div>
         
         <form [formGroup]="citaForm" (ngSubmit)="guardar()">
-          <div class="form-group">
+          <div class="form-group" *ngIf="!authService.hasRole(Rol.CLIENTE)">
             <label>Cliente</label>
             <select formControlName="cliente" [compareWith]="compareById('idCliente')">
               <option [ngValue]="null" disabled>Selecciona un cliente</option>
@@ -109,7 +110,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita } from '../../../core/mode
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" *ngIf="!authService.hasRole(Rol.CLIENTE)">
             <label>Estado</label>
             <select formControlName="estado">
               <option value="Programada">Programada</option>
@@ -176,9 +177,11 @@ export class CitaListComponent implements OnInit {
   public mostrarModal = false;
   public editando = false;
   public citaForm: FormGroup;
+  public Rol = Rol;
 
   constructor(
     private barberiaService: BarberiaService,
+    public authService: AuthService,
     private fb: FormBuilder
   ) {
     this.citaForm = this.fb.group({
@@ -206,6 +209,19 @@ export class CitaListComponent implements OnInit {
   abrirModal(): void {
     this.editando = false;
     this.citaForm.reset({ estado: 'Programada' });
+    
+    // Si es cliente, pre-asignamos su ID
+    if (this.authService.hasRole(Rol.CLIENTE)) {
+      const currentUserId = this.authService.currentUser()?.idCliente;
+      if (currentUserId) {
+        // Buscamos el cliente en la lista para asignarlo al form
+        const clientObj = this.clientes().find(c => c.idCliente === currentUserId);
+        if (clientObj) {
+          this.citaForm.patchValue({ cliente: clientObj });
+        }
+      }
+    }
+    
     this.mostrarModal = true;
   }
 
@@ -241,6 +257,11 @@ export class CitaListComponent implements OnInit {
   }
 
   compareById(prop: string) {
-    return (a: any, b: any) => a && b ? a[prop] === b[prop] : a === b;
+    return (a: any, b: any) => {
+      if (a && b) {
+        return a[prop] === b[prop];
+      }
+      return a === b;
+    };
   }
 }

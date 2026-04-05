@@ -1,36 +1,48 @@
 <aside class="sidebar">
   <div class="logo">
     <i class="fas fa-scissors"></i>
-    <span>Barbería Admin</span>
+    <span>Barbería Pro</span>
   </div>
+
+  <div class="user-info" *ngIf="authService.currentUser() as user">
+    <div class="avatar">
+      <i class="fas fa-user-circle"></i>
+    </div>
+    <div class="details">
+      <span class="username">{{ user.username }}</span>
+      <span class="role">{{ user.rol }}</span>
+    </div>
+  </div>
+
   <nav>
     <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
       <i class="fas fa-home"></i> Dashboard
     </a>
-    <a routerLink="/barberos" routerLinkActive="active" class="nav-item">
+    <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/barberos" routerLinkActive="active" class="nav-item">
       <i class="fas fa-user-tie"></i> Barberos
     </a>
-    <a routerLink="/clientes" routerLinkActive="active" class="nav-item">
+    <a *ngIf="authService.hasRole(Rol.ADMIN) || authService.hasRole(Rol.BARBERO)" routerLink="/clientes" routerLinkActive="active" class="nav-item">
       <i class="fas fa-users"></i> Clientes
     </a>
-    <a routerLink="/servicios" routerLinkActive="active" class="nav-item">
+    <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/servicios" routerLinkActive="active" class="nav-item">
       <i class="fas fa-cut"></i> Servicios
     </a>
     <a routerLink="/citas" routerLinkActive="active" class="nav-item">
-      <i class="fas fa-calendar-alt"></i> Citas
+      <i class="fas fa-calendar-alt"></i> 
+      {{ authService.hasRole(Rol.CLIENTE) ? 'Mis Citas' : 'Citas' }}
     </a>
-    <a routerLink="/horarios" routerLinkActive="active" class="nav-item">
+    <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/horarios" routerLinkActive="active" class="nav-item">
       <i class="fas fa-clock"></i> Horarios
     </a>
-    <a routerLink="/pagos" routerLinkActive="active" class="nav-item">
+    <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/pagos" routerLinkActive="active" class="nav-item">
       <i class="fas fa-money-bill-wave"></i> Pagos
     </a>
   </nav>
 
   <div class="sidebar-footer">
-    <div class="api-status">
-      <span class="status-dot online"></span>
-      API: <span>Online</span>
-    </div>
+    <button (click)="onLogout()" class="nav-item logout-btn">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+    </button>
   </div>
 </aside>
+

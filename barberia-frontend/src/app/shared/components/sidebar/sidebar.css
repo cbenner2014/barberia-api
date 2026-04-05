@@ -24,8 +24,42 @@
   gap: 12px;
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: #ffb703;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-info .avatar i {
+  font-size: 2.2rem;
+  color: #ffb703;
+}
+
+.user-info .details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info .username {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.user-info .role {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 nav {
@@ -45,6 +79,10 @@ nav {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
 }
 
 .nav-item:hover {
@@ -65,18 +103,12 @@ nav {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.api-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+.logout-btn {
+  color: #ff4d4d;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00ff00;
-  box-shadow: 0 0 8px #00ff00;
+.logout-btn:hover {
+  background: rgba(255, 77, 77, 0.1);
+  color: #ff3333;
 }
+

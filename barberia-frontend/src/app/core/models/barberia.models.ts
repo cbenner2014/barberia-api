@@ -53,3 +53,26 @@ export interface Pago {
   cita: Cita;
 }
 
+export enum Rol {
+  ADMIN = 'ADMIN',
+  BARBERO = 'BARBERO',
+  CLIENTE = 'CLIENTE'
+}
+
+export interface Usuario {
+  idUsuario?: number;
+  username: string;
+  rol: Rol;
+  barbero?: Barbero;
+  cliente?: Cliente;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  rol: Rol;
+  idBarbero?: number;
+  idCliente?: number;
+}
+
+

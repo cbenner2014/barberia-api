@@ -19,6 +19,17 @@ public class CitaServiceImpl implements CitaService {
     }
 
     @Override
+    public List<Cita> listarPorBarbero(Integer idBarbero) {
+        return citaRepository.findByBarberoIdBarbero(idBarbero);
+    }
+
+    @Override
+    public List<Cita> listarPorCliente(Integer idCliente) {
+        return citaRepository.findByClienteIdCliente(idCliente);
+    }
+
+
+    @Override
     public Cita guardar(Cita cita) {
         return citaRepository.save(cita);
     }
