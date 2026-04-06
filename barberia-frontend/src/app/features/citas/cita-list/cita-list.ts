@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core/models/barberia.models';
+import { Barbero, Cliente, Servicio, Cita, Rol } from '../../../core/models/barberia.models';
 
 @Component({
   selector: 'app-cita-list',
@@ -13,7 +13,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
     <div class="module-container">
       <div class="module-header">
         <h2>{{ authService.hasRole(Rol.CLIENTE) ? 'Mis Citas' : 'Gestión de Citas' }}</h2>
-        <button *ngIf="!authService.hasRole(Rol.BARBERO)" class="btn btn-primary" (click)="abrirModal()">
+        <button *ngIf="authService.hasRole(Rol.ADMIN) || authService.hasRole(Rol.CLIENTE)" class="btn btn-primary" (click)="abrirModal()">
           <i class="fas fa-plus"></i> {{ authService.hasRole(Rol.CLIENTE) ? 'Agendar Cita' : 'Nueva Cita' }}
         </button>
       </div>
@@ -29,7 +29,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
               <th>Fecha</th>
               <th>Hora</th>
               <th>Estado</th>
-              <th *ngIf="!authService.hasRole(Rol.CLIENTE)">Acciones</th>
+              <th *ngIf="authService.hasRole(Rol.ADMIN)">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -45,24 +45,20 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
                   {{ cita.estado }}
                 </span>
               </td>
-              <td *ngIf="!authService.hasRole(Rol.CLIENTE)">
+              <td *ngIf="authService.hasRole(Rol.ADMIN)">
                 <div class="actions-group">
                   <button class="btn-icon edit" (click)="editar(cita)">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button *ngIf="authService.hasRole(Rol.ADMIN)" class="btn-icon delete" (click)="eliminar(cita.idCita!)">
+                  <button class="btn-icon delete" (click)="eliminar(cita.idCita!)">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
               </td>
             </tr>
-            <tr *ngIf="citas().length === 0">
-              <td [attr.colspan]="authService.hasRole(Rol.CLIENTE) ? 7 : 8" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
-                No hay citas registradas.
-              </td>
-            </tr>
           </tbody>
         </table>
+
       </div>
     </div>
 
@@ -75,6 +71,8 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
         </div>
         
         <form [formGroup]="citaForm" (ngSubmit)="guardar()">
+          
+          <!-- Cliente: Solo editable por ADMIN o si se está creando -->
           <div class="form-group" *ngIf="!authService.hasRole(Rol.CLIENTE)">
             <label>Cliente</label>
             <select formControlName="cliente" [compareWith]="compareById('idCliente')">
@@ -82,7 +80,8 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
               <option *ngFor="let c of clientes()" [ngValue]="c">{{ c.nombreCliente }}</option>
             </select>
           </div>
-          
+
+          <!-- Resto de campos protegidos si es BARBERO -->
           <div class="form-group">
             <label>Barbero</label>
             <select formControlName="barbero" [compareWith]="compareById('idBarbero')">
@@ -110,7 +109,7 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
             </div>
           </div>
 
-          <div class="form-group" *ngIf="!authService.hasRole(Rol.CLIENTE)">
+          <div class="form-group">
             <label>Estado</label>
             <select formControlName="estado">
               <option value="Programada">Programada</option>
@@ -130,42 +129,26 @@ import { Barbero, Cliente, Servicio, Cita, EstadoCita, Rol } from '../../../core
     </div>
   `,
   styles: `
+    /* ... estilos anteriores ... */
     .module-container { padding: 2rem; color: white; }
-    .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .table-card { background: rgba(255, 255, 255, 0.05); border-radius: 12px; overflow: hidden; }
+    .table-card { background: rgba(255, 255, 255, 0.05); border-radius: 12px; overflow: hidden; margin-top: 1rem; }
     .table { width: 100%; border-collapse: collapse; }
-    .table th { text-align: left; padding: 1rem; color: #ffb703; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    .table td { padding: 10px 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .table th { text-align: left; padding: 1rem; color: #ffb703; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .table td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize; }
     .status-badge.programada { background: rgba(255, 183, 3, 0.2); color: #ffb703; }
     .status-badge.atendida { background: rgba(0, 204, 102, 0.2); color: #00cc66; }
     .status-badge.cancelada { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; }
-    .actions-group { display: flex; gap: 10px; min-width: 90px; }
-    
-    .btn-primary { background: #ffb703; color: #121212; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .btn-primary:hover { background: #e6a500; transform: translateY(-2px); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    
-    .btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-    .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-
-    .btn-icon { background: rgba(255,255,255,0.05); border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-    .btn-icon:hover { background: rgba(255,255,255,0.15); }
-    .btn-icon.edit:hover { color: #ffb703; }
-    .btn-icon.delete:hover { color: #ff4d4d; }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
-    .modal-content { width: 100%; max-width: 500px; padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-header h3 { color: #ffb703; margin: 0; }
-    .btn-close { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-    
+    .actions-group { display: flex; gap: 10px; }
+    .btn-primary { background: #ffb703; color: #121212; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-icon { background: rgba(255,255,255,0.05); border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { width: 100%; max-width: 500px; padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: #1a1a1a; }
     .form-group { margin-bottom: 1.2rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); font-size: 0.9rem; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none; transition: 0.3s; }
-    .form-group input:focus, .form-group select:focus { border-color: #ffb703; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 2rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
   `
 })
 export class CitaListComponent implements OnInit {
@@ -173,7 +156,6 @@ export class CitaListComponent implements OnInit {
   public barberos = signal<Barbero[]>([]);
   public clientes = signal<Cliente[]>([]);
   public servicios = signal<Servicio[]>([]);
-  
   public mostrarModal = false;
   public editando = false;
   public citaForm: FormGroup;
@@ -209,59 +191,62 @@ export class CitaListComponent implements OnInit {
   abrirModal(): void {
     this.editando = false;
     this.citaForm.reset({ estado: 'Programada' });
-    
-    // Si es cliente, pre-asignamos su ID
+    this.citaForm.enable();
+
     if (this.authService.hasRole(Rol.CLIENTE)) {
-      const currentUserId = this.authService.currentUser()?.idCliente;
-      if (currentUserId) {
-        // Buscamos el cliente en la lista para asignarlo al form
-        const clientObj = this.clientes().find(c => c.idCliente === currentUserId);
-        if (clientObj) {
-          this.citaForm.patchValue({ cliente: clientObj });
-        }
+      const clientId = this.authService.currentUser()?.idCliente;
+      const clientObj = this.clientes().find(c => c.idCliente === clientId);
+      if (clientObj) {
+        this.citaForm.patchValue({ cliente: clientObj });
       }
     }
     
     this.mostrarModal = true;
+  }
+
+  editar(cita: Cita): void {
+    this.editando = true;
+    this.citaForm.reset();
+    this.citaForm.patchValue(cita);
+    this.citaForm.enable();
+
+    // RESTRICCIÓN BARBERO: Solo puede cambiar el estado
+    if (this.authService.hasRole(Rol.BARBERO)) {
+      this.citaForm.get('cliente')?.disable();
+      this.citaForm.get('barbero')?.disable();
+      this.citaForm.get('servicio')?.disable();
+      this.citaForm.get('fecha')?.disable();
+      this.citaForm.get('hora')?.disable();
+    }
+
+    this.mostrarModal = true;
+  }
+
+  guardar(): void {
+    if (this.citaForm.valid || (this.editando && this.authService.hasRole(Rol.BARBERO))) {
+      // Usamos getRawValue para incluir los campos deshabilitados
+      const data = this.citaForm.getRawValue();
+      this.barberiaService.saveCita(data).subscribe({
+        next: () => {
+          this.mostrarModal = false;
+          this.cargarDatos();
+        },
+        error: (err) => alert('Error: ' + err.message)
+      });
+    }
+  }
+
+  eliminar(id: number): void {
+    if (confirm('¿Eliminar cita?')) {
+      this.barberiaService.deleteCita(id).subscribe(() => this.cargarDatos());
+    }
   }
 
   cerrarModal(event: any): void {
     this.mostrarModal = false;
   }
 
-  guardar(): void {
-    if (this.citaForm.valid) {
-      this.barberiaService.saveCita(this.citaForm.value).subscribe({
-        next: () => {
-          this.mostrarModal = false;
-          this.cargarDatos();
-        },
-        error: (err) => alert('Error al guardar: ' + err.message)
-      });
-    }
-  }
-
-  editar(cita: Cita): void {
-    this.editando = true;
-    this.citaForm.patchValue(cita);
-    this.mostrarModal = true;
-  }
-
-  eliminar(id: number): void {
-    if (confirm('¿Estás seguro de eliminar esta cita?')) {
-      this.barberiaService.deleteCita(id).subscribe({
-        next: () => this.cargarDatos(),
-        error: (err) => alert('Error al eliminar: ' + err.message)
-      });
-    }
-  }
-
   compareById(prop: string) {
-    return (a: any, b: any) => {
-      if (a && b) {
-        return a[prop] === b[prop];
-      }
-      return a === b;
-    };
+    return (a: any, b: any) => a && b ? a[prop] === b[prop] : a === b;
   }
 }

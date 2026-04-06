@@ -1,114 +1,139 @@
-:host {
-  display: block;
-  height: 100%;
-}
-
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 250px;
+  width: 280px;
   height: 100vh;
-  background: rgba(18, 18, 18, 0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2rem 1.5rem;
+  background: #0b0f19;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 2rem 1.2rem;
   box-sizing: border-box;
   color: white;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
+
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
+  gap: 15px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 2.5rem;
   color: #ffb703;
+  padding-left: 0.5rem;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  margin-bottom: 2rem;
+  gap: 20px;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  margin-bottom: 2.5rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .user-info .avatar i {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   color: #ffb703;
+  flex-shrink: 0;
 }
 
 .user-info .details {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  justify-content: center;
 }
 
 .user-info .username {
   font-weight: 700;
   font-size: 0.9rem;
   color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .user-info .role {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  margin-top: 2px;
 }
+
 
 nav {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 5px;
 }
+
+/* Custom Nav Scrollbar */
+nav::-webkit-scrollbar { width: 4px; }
+nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
+  gap: 15px;
+  padding: 14px 18px;
+  border-radius: 14px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border: none;
   background: transparent;
   width: 100%;
 }
 
+.nav-item i {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: #ffb703;
+  transform: translateX(5px);
 }
 
 .nav-item.active {
   background: #ffb703;
   color: #121212;
-  font-weight: 600;
-  box-shadow: 0 4px 15px rgba(255, 183, 3, 0.2);
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(255, 183, 3, 0.3);
 }
 
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logout-btn {
-  color: #ff4d4d;
+  color: #ff5555;
+  margin-top: 0.5rem;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 77, 77, 0.1);
-  color: #ff3333;
+  background: rgba(255, 85, 85, 0.1);
+  color: #ff5555;
+  transform: scale(0.98);
 }
+
 

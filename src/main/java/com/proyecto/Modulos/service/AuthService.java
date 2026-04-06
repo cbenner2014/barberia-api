@@ -30,12 +30,21 @@ public class AuthService {
     private AuthenticationManager authenticationManager;
 
     public LoginResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        System.out.println("DEBUG: Intento de login para usuario: " + request.getUsername());
+        
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            System.out.println("DEBUG: Autenticación exitosa para: " + request.getUsername());
+        } catch (Exception e) {
+            System.out.println("DEBUG: Fallo de autenticación para: " + request.getUsername() + " - Error: " + e.getMessage());
+            throw e;
+        }
 
         Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("rol", usuario.getRol().name());

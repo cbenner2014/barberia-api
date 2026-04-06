@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { Rol } from './core/models/barberia.models';
+import { AdminLayoutComponent } from './shared/layouts/admin-layout/admin-layout';
 
 export const routes: Routes = [
   { 
@@ -9,6 +10,7 @@ export const routes: Routes = [
   },
   {
     path: '',
+    component: AdminLayoutComponent,
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -40,15 +42,12 @@ export const routes: Routes = [
         path: 'horarios', 
         loadComponent: () => import('./features/horarios/horario-list/horario-list').then(m => m.HorarioListComponent),
         data: { roles: [Rol.ADMIN] }
-      },
-      { 
-        path: 'pagos', 
-        loadComponent: () => import('./features/pagos/pago-list/pago-list').then(m => m.PagoListComponent),
-        data: { roles: [Rol.ADMIN] }
       }
     ]
   },
+
   { path: '**', redirectTo: 'dashboard' }
 ];
+
 
 

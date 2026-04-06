@@ -34,10 +34,8 @@
     <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/horarios" routerLinkActive="active" class="nav-item">
       <i class="fas fa-clock"></i> Horarios
     </a>
-    <a *ngIf="authService.hasRole(Rol.ADMIN)" routerLink="/pagos" routerLinkActive="active" class="nav-item">
-      <i class="fas fa-money-bill-wave"></i> Pagos
-    </a>
   </nav>
+
 
   <div class="sidebar-footer">
     <button (click)="onLogout()" class="nav-item logout-btn">

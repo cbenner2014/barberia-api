@@ -18,6 +18,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
 
 # server configuration
+logging:
+  level:
+    org.springframework.security: DEBUG
+
 server:
   port: 8080
+
 
