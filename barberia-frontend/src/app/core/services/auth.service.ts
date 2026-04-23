@@ -8,7 +8,7 @@ import { LoginResponse, Rol } from '../models/barberia.models';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = 'https://motivated-courage-production-877a.up.railway.app/api/auth';
   
   // Signal to store current user info
   public currentUser = signal<LoginResponse | null>(this.getUserFromStorage());
