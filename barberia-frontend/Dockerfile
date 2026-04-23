@@ -13,8 +13,7 @@ RUN npm run build -- --configuration production
 # Etapa 2: Servidor
 FROM nginx:alpine
 
-# Copiar los archivos compilados desde la etapa anterior
-# En Angular 17+ la ruta suele ser dist/[nombre-proyecto]/browser
+# Ajuste de ruta para Angular 17+
 COPY --from=build /app/dist/barberia-frontend/browser /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx
