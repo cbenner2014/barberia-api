@@ -7,7 +7,7 @@ import { Barbero, Cliente, Servicio, Cita, Horario, Pago } from '../models/barbe
   providedIn: 'root'
 })
 export class BarberiaService {
-  private apiUrl = 'https://motivated-courage-production-877a.up.railway.app/api';
+  private apiUrl = 'http://localhost:8080/api';
 
   constructor(private http: HttpClient) {}
 

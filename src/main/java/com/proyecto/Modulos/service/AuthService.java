@@ -30,20 +30,29 @@ public class AuthService {
     private AuthenticationManager authenticationManager;
 
     public LoginResponse login(LoginRequest request) {
-        System.out.println("DEBUG: Intento de login para usuario: " + request.getUsername());
+        System.out.println("DEBUG: === INTENTO DE LOGIN ===");
+        System.out.println("DEBUG: Usuario: [" + request.getUsername() + "]");
+        System.out.println("DEBUG: Password: [" + (request.getPassword() != null ? "****" : "NULL") + "]");
         
         try {
+            System.out.println("DEBUG: Intentando autenticar con AuthenticationManager...");
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-            System.out.println("DEBUG: Autenticación exitosa para: " + request.getUsername());
+            System.out.println("DEBUG: Autenticación exitosa en AuthenticationManager");
         } catch (Exception e) {
-            System.out.println("DEBUG: Fallo de autenticación para: " + request.getUsername() + " - Error: " + e.getMessage());
+            System.out.println("DEBUG: ERROR EN AUTENTICACIÓN: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             throw e;
         }
 
+        System.out.println("DEBUG: Buscando usuario en base de datos...");
         Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> {
+                    System.out.println("DEBUG: ERROR - Usuario no encontrado en la tabla 'usuario' tras autenticación exitosa");
+                    return new RuntimeException("Usuario no encontrado");
+                });
+
+        System.out.println("DEBUG: Usuario encontrado. Rol: " + usuario.getRol());
 
 
         Map<String, Object> extraClaims = new HashMap<>();
