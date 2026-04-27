@@ -30,27 +30,31 @@ public class BarberoServiceImpl implements BarberoService {
     @Transactional
     public Barbero guardar(Barbero barbero) {
         boolean esNuevo = (barbero.getIdBarbero() == null);
+        
+        // Asegurar contraseña por defecto si viene vacía
+        if (barbero.getContrasenaBarbero() == null || barbero.getContrasenaBarbero().isEmpty()) {
+            barbero.setContrasenaBarbero("123456");
+        }
+        
         Barbero barberoGuardado = barberoRepository.save(barbero);
 
         // Sincronizar con la tabla Usuario
-        if (esNuevo) {
+        Optional<Usuario> usuarioExistente = usuarioRepository.findByBarbero(barberoGuardado);
+        
+        if (usuarioExistente.isEmpty()) {
+            // Si no existe usuario para este barbero, lo creamos
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setUsername(barberoGuardado.getUsuarioBarbero() != null ? barberoGuardado.getUsuarioBarbero() : barberoGuardado.getEmailBarbero());
-            nuevoUsuario.setPassword(barberoGuardado.getContrasenaBarbero() != null ? barberoGuardado.getContrasenaBarbero() : "123456");
+            nuevoUsuario.setPassword(barberoGuardado.getContrasenaBarbero());
             nuevoUsuario.setRol(Rol.BARBERO);
             nuevoUsuario.setBarbero(barberoGuardado);
             usuarioRepository.save(nuevoUsuario);
         } else {
-            // Si ya existe, actualizamos los datos de acceso si cambiaron
-            Optional<Usuario> usuarioExistente = usuarioRepository.findByBarbero(barberoGuardado);
-            if (usuarioExistente.isPresent()) {
-                Usuario u = usuarioExistente.get();
-                if (barberoGuardado.getUsuarioBarbero() != null) u.setUsername(barberoGuardado.getUsuarioBarbero());
-                if (barberoGuardado.getContrasenaBarbero() != null && !barberoGuardado.getContrasenaBarbero().isEmpty()) {
-                    u.setPassword(barberoGuardado.getContrasenaBarbero());
-                }
-                usuarioRepository.save(u);
-            }
+            // Si ya existe, actualizamos los datos
+            Usuario u = usuarioExistente.get();
+            if (barberoGuardado.getUsuarioBarbero() != null) u.setUsername(barberoGuardado.getUsuarioBarbero());
+            if (barberoGuardado.getContrasenaBarbero() != null) u.setPassword(barberoGuardado.getContrasenaBarbero());
+            usuarioRepository.save(u);
         }
 
         return barberoGuardado;
@@ -66,9 +70,8 @@ public class BarberoServiceImpl implements BarberoService {
     public void eliminar(Integer id) {
         Barbero barbero = buscarPorId(id);
         if (barbero != null) {
-            // Primero eliminamos el usuario asociado si existe
             usuarioRepository.findByBarbero(barbero).ifPresent(u -> usuarioRepository.delete(u));
             barberoRepository.deleteById(id);
         }
     }
-}
+}
