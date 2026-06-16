@@ -32,4 +32,20 @@ public class HorarioServiceImpl implements HorarioService {
     public void eliminar(Integer id) {
         horarioRepository.deleteById(id);
     }
+
+    @Override
+    public List<com.proyecto.Modulos.repository.HorarioProyeccion> listarProyectado() {
+        return horarioRepository.findAllProyectado();
+    }
+
+    @Override
+    public List<Horario> buscarConFiltros(com.proyecto.Modulos.entity.DiaSemana dia) {
+        return horarioRepository.findAll((root, query, criteriaBuilder) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            if (dia != null) {
+                predicates.add(criteriaBuilder.equal(root.get("diaSemana"), dia));
+            }
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
+    }
 }

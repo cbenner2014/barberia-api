@@ -64,7 +64,10 @@ export class BarberiaService {
     return this.http.get<Cita[]>(`${this.apiUrl}/citas`);
   }
 
-  saveCita(cita: Cita): Observable<Cita> {
+  saveCita(cita: any): Observable<Cita> {
+    if (cita.idCita) {
+      return this.http.put<Cita>(`${this.apiUrl}/citas/${cita.idCita}`, cita);
+    }
     return this.http.post<Cita>(`${this.apiUrl}/citas`, cita);
   }
 
@@ -77,7 +80,10 @@ export class BarberiaService {
     return this.http.get<Horario[]>(`${this.apiUrl}/horarios`);
   }
 
-  saveHorario(horario: Horario): Observable<Horario> {
+  saveHorario(horario: any): Observable<Horario> {
+    if (horario.idHorario) {
+      return this.http.put<Horario>(`${this.apiUrl}/horarios/${horario.idHorario}`, horario);
+    }
     return this.http.post<Horario>(`${this.apiUrl}/horarios`, horario);
   }
 

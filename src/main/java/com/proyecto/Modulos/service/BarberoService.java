@@ -8,4 +8,7 @@ public interface BarberoService {
     Barbero guardar(Barbero barbero);
     Barbero buscarPorId(Integer id);
     void eliminar(Integer id);
+    
+    java.util.List<com.proyecto.Modulos.repository.BarberoProyeccion> listarProyectado();
+    List<Barbero> buscarConFiltros(String nombre, String email);
 }

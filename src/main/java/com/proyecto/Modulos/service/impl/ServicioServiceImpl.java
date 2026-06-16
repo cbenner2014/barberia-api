@@ -32,4 +32,20 @@ public class ServicioServiceImpl implements ServicioService {
     public void eliminar(Integer id) {
         servicioRepository.deleteById(id);
     }
+
+    @Override
+    public List<com.proyecto.Modulos.repository.ServicioProyeccion> listarProyectado() {
+        return servicioRepository.findAllProyectado();
+    }
+
+    @Override
+    public List<Servicio> buscarConFiltros(String nombre) {
+        return servicioRepository.findAll((root, query, criteriaBuilder) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            if (nombre != null && !nombre.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("nombreServicio"), "%" + nombre + "%"));
+            }
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
+    }
 }

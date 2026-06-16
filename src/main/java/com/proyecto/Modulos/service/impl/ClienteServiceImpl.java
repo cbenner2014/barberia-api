@@ -21,6 +21,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Override
     public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
@@ -36,7 +39,7 @@ public class ClienteServiceImpl implements ClienteService {
         if (esNuevo) {
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setUsername(clienteGuardado.getEmailCliente());
-            nuevoUsuario.setPassword("123456"); // Password por defecto para clientes
+            nuevoUsuario.setPassword(passwordEncoder.encode("123456")); // Password por defecto encriptado
             nuevoUsuario.setRol(Rol.CLIENTE);
             nuevoUsuario.setCliente(clienteGuardado);
             usuarioRepository.save(nuevoUsuario);
@@ -67,5 +70,26 @@ public class ClienteServiceImpl implements ClienteService {
             usuarioRepository.findByCliente(cliente).ifPresent(u -> usuarioRepository.delete(u));
             clienteRepository.deleteById(id);
         }
+    }
+
+    @Override
+    public List<com.proyecto.Modulos.repository.ClienteProyeccion> listarProyectado() {
+        return clienteRepository.findAllProyectado();
+    }
+
+    @Override
+    public List<Cliente> buscarConFiltros(String nombre, String telefono) {
+        return clienteRepository.findAll((root, query, criteriaBuilder) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            
+            if (nombre != null && !nombre.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("nombreCliente"), "%" + nombre + "%"));
+            }
+            if (telefono != null && !telefono.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("telefonoCliente"), "%" + telefono + "%"));
+            }
+            
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
     }
 }

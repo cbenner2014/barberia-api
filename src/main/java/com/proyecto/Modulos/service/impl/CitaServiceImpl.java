@@ -43,4 +43,18 @@ public class CitaServiceImpl implements CitaService {
     public void eliminar(Integer id) {
         citaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Cita> buscarConFiltros(Integer idBarbero, Integer idCliente) {
+        return citaRepository.findAll((root, query, criteriaBuilder) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            if (idBarbero != null) {
+                predicates.add(criteriaBuilder.equal(root.join("barbero").get("idBarbero"), idBarbero));
+            }
+            if (idCliente != null) {
+                predicates.add(criteriaBuilder.equal(root.join("cliente").get("idCliente"), idCliente));
+            }
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
+    }
 }

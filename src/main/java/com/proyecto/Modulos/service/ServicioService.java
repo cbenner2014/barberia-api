@@ -8,4 +8,7 @@ public interface ServicioService {
     Servicio guardar(Servicio servicio);
     Servicio buscarPorId(Integer id);
     void eliminar(Integer id);
+    
+    java.util.List<com.proyecto.Modulos.repository.ServicioProyeccion> listarProyectado();
+    List<Servicio> buscarConFiltros(String nombre);
 }

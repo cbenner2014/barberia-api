@@ -10,4 +10,5 @@ public interface CitaService {
     Cita guardar(Cita cita);
     Cita buscarPorId(Integer id);
     void eliminar(Integer id);
+    List<Cita> buscarConFiltros(Integer idBarbero, Integer idCliente);
 }

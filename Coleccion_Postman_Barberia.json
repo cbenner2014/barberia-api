@@ -1,0 +1,201 @@
+{
+	"info": {
+		"_postman_id": "8c593644-8d4e-4f01-a1e6-49a0d8a9e7f7",
+		"name": "Barberia API - Pruebas Examen",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Clientes",
+			"item": [
+				{
+					"name": "Listar Clientes (Proyectado)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/clientes",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "clientes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Clientes con Filtros",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/clientes/buscar?nombre=Juan&telefono=999",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "clientes", "buscar"],
+							"query": [
+								{ "key": "nombre", "value": "Juan" },
+								{ "key": "telefono", "value": "999" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Cliente (POST) - Validado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombreCliente\": \"Juan Perez\",\r\n    \"telefonoCliente\": \"987654321\",\r\n    \"emailCliente\": \"juan.perez@email.com\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/clientes",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "clientes"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Cliente (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombreCliente\": \"Juan Perez Editado\",\r\n    \"telefonoCliente\": \"999888777\",\r\n    \"emailCliente\": \"juan.editado@email.com\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/clientes/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "clientes", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Cliente (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/clientes/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "clientes", "1"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Barberos",
+			"item": [
+				{
+					"name": "Listar Barberos (Proyectado)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/barberos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "barberos"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Barberos con Filtros",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/barberos/buscar?nombre=Carlos&email=carlos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "barberos", "buscar"],
+							"query": [
+								{ "key": "nombre", "value": "Carlos" },
+								{ "key": "email", "value": "carlos" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Barbero (POST) - Validado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombreBarbero\": \"Carlos Martinez\",\r\n    \"edadBarbero\": 25,\r\n    \"emailBarbero\": \"carlos.barbero@email.com\",\r\n    \"usuarioBarbero\": \"carlos123\",\r\n    \"contrasenaBarbero\": \"secreta123\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/barberos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "barberos"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Barbero (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json", "type": "text" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombreBarbero\": \"Carlos Martinez Editado\",\r\n    \"edadBarbero\": 26,\r\n    \"emailBarbero\": \"carlos.editado@email.com\",\r\n    \"usuarioBarbero\": \"carlos123_edit\",\r\n    \"contrasenaBarbero\": \"nuevaSecreta\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/barberos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "barberos", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Barbero (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/barberos/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "barberos", "1"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

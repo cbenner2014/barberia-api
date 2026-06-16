@@ -21,6 +21,9 @@ public class BarberoServiceImpl implements BarberoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Override
     public List<Barbero> listarTodos() {
         return barberoRepository.findAll();
@@ -45,7 +48,7 @@ public class BarberoServiceImpl implements BarberoService {
             // Si no existe usuario para este barbero, lo creamos
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setUsername(barberoGuardado.getUsuarioBarbero() != null ? barberoGuardado.getUsuarioBarbero() : barberoGuardado.getEmailBarbero());
-            nuevoUsuario.setPassword(barberoGuardado.getContrasenaBarbero());
+            nuevoUsuario.setPassword(passwordEncoder.encode(barberoGuardado.getContrasenaBarbero()));
             nuevoUsuario.setRol(Rol.BARBERO);
             nuevoUsuario.setBarbero(barberoGuardado);
             usuarioRepository.save(nuevoUsuario);
@@ -73,5 +76,26 @@ public class BarberoServiceImpl implements BarberoService {
             usuarioRepository.findByBarbero(barbero).ifPresent(u -> usuarioRepository.delete(u));
             barberoRepository.deleteById(id);
         }
+    }
+
+    @Override
+    public List<com.proyecto.Modulos.repository.BarberoProyeccion> listarProyectado() {
+        return barberoRepository.findAllProyectado();
+    }
+
+    @Override
+    public List<Barbero> buscarConFiltros(String nombre, String email) {
+        return barberoRepository.findAll((root, query, criteriaBuilder) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            
+            if (nombre != null && !nombre.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("nombreBarbero"), "%" + nombre + "%"));
+            }
+            if (email != null && !email.isEmpty()) {
+                predicates.add(criteriaBuilder.like(root.get("emailBarbero"), "%" + email + "%"));
+            }
+            
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        });
     }
 }
