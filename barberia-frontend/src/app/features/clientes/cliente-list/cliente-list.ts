@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
@@ -30,13 +30,16 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let cliente of clientes()">
+            <tr *ngFor="let cliente of filteredData()">
               <td>{{ cliente.idCliente }}</td>
               <td>{{ cliente.nombreCliente }}</td>
               <td>{{ cliente.telefonoCliente }}</td>
               <td>{{ cliente.emailCliente }}</td>
               <td *ngIf="authService.hasRole(Rol.ADMIN)">
                 <div class="actions-group">
+                  <button class="btn-icon view" (click)="verDetalle(cliente)">
+                    <i class="fas fa-eye"></i>
+                  </button>
                   <button class="btn-icon edit" (click)="editar(cliente)">
                     <i class="fas fa-edit"></i>
                   </button>
@@ -46,7 +49,7 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="clientes().length === 0">
+            <tr *ngIf="filteredData().length === 0">
               <td [attr.colspan]="authService.hasRole(Rol.ADMIN) ? 5 : 4" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
                 No hay clientes registrados.
               </td>
@@ -116,10 +119,39 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
         </form>
       </div>
     </div>
+
+    <!-- Modal para Ver Detalle -->
+    <div class="modal-overlay" *ngIf="verModalDetalle">
+      <div class="modal-content glass" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Detalles del Registro</h3>
+          <button class="btn-close" (click)="verModalDetalle = false">&times;</button>
+        </div>
+        
+        <div class="detalle-grid" *ngIf="itemSeleccionado">
+          <div class="detalle-item" *ngFor="let key of objectKeys(itemSeleccionado)">
+            <label>{{ key | titlecase }}</label>
+            <p *ngIf="typeof(itemSeleccionado[key]) !== 'object'">{{ itemSeleccionado[key] }}</p>
+            <p *ngIf="typeof(itemSeleccionado[key]) === 'object'">{{ jsonStringify(itemSeleccionado[key]) }}</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary" (click)="verModalDetalle = false">Cerrar</button>
+        </div>
+      </div>
+    </div>
   `,
     styles: `
     .module-container { padding: 2rem; color: white; animation: fadeIn 0.4s ease-out; }
     .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    
+    .header-actions { display: flex; gap: 15px; align-items: center; }
+    .search-box { position: relative; display: flex; align-items: center; }
+    .search-box i { position: absolute; left: 15px; color: rgba(255,255,255,0.5); }
+    .search-box input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 10px 15px 10px 40px; border-radius: 12px; color: white; outline: none; width: 200px; transition: all 0.3s; }
+    .search-box input:focus { border-color: #ffb703; width: 280px; background: rgba(0,0,0,0.5); }
+
     .table-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
     .table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .table th { text-align: left; padding: 1.2rem 1rem; color: #ffb703; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-weight: 600; letter-spacing: 0.5px; background: rgba(0,0,0,0.2); }
@@ -129,6 +161,7 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
     .actions-group { display: flex; gap: 8px; }
     .btn-icon { background: rgba(255,255,255,0.05); border: none; color: white; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
     .btn-icon:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    .btn-icon.view:hover { color: #00cc66; background: rgba(0,204,102,0.1); }
     .btn-icon.edit:hover { color: #ffb703; background: rgba(255,183,3,0.1); }
     .btn-icon.delete:hover { color: #ff4d4d; background: rgba(255,77,77,0.1); }
 
@@ -139,6 +172,12 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
     .btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
     .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); }
 
+    /* Detalles */
+    .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .detalle-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .detalle-item label { display: block; font-size: 0.8rem; color: #ffb703; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .detalle-item p { margin: 0; color: white; font-size: 1rem; font-weight: 500; word-break: break-word; }
+    
     /* Modales Premium */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); animation: fadeIn 0.3s ease-out; }
     .modal-content { width: 100%; max-width: 550px; padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); background: rgba(20, 20, 20, 0.95); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 90vh; overflow-y: auto; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -189,7 +228,29 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
 })
 export class ClienteListComponent implements OnInit {
   public clientes = signal<Cliente[]>([]);
+  
+  public searchQuery = signal('');
+  public filteredData = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const data = this.clientes();
+    if (!query) return data;
+    return data.filter((item: any) => {
+      return Object.values(item).some(val => 
+        val && val.toString().toLowerCase().includes(query)
+      );
+    });
+  });
+
+  onSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input.value);
+  }
+
   public mostrarModal = false;
+  public verModalDetalle = false;
+  public itemSeleccionado: any = null;
+  public typeof = (obj: any) => typeof obj;
+  public jsonStringify = (obj: any) => obj ? JSON.stringify(obj) : 'N/A';
   public editando = false;
   public clienteForm: FormGroup;
   public Rol = Rol;
@@ -219,6 +280,12 @@ export class ClienteListComponent implements OnInit {
       next: (data) => this.clientes.set(data),
       error: (error) => console.error('Error cargando clientes', error)
     });
+  }
+
+  
+  verDetalle(item: any): void {
+    this.itemSeleccionado = item;
+    this.verModalDetalle = true;
   }
 
   abrirModal(): void {
