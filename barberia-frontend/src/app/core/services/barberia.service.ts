@@ -21,7 +21,10 @@ export class BarberiaService {
     return this.http.get<Barbero>(`${this.apiUrl}/barberos/${id}`);
   }
 
-  saveBarbero(barbero: Barbero): Observable<Barbero> {
+  saveBarbero(barbero: any): Observable<Barbero> {
+    if (barbero.idBarbero) {
+      return this.http.put<Barbero>(`${this.apiUrl}/barberos/${barbero.idBarbero}`, barbero);
+    }
     return this.http.post<Barbero>(`${this.apiUrl}/barberos`, barbero);
   }
 
@@ -38,7 +41,10 @@ export class BarberiaService {
     return this.http.get<Cliente>(`${this.apiUrl}/clientes/${id}`);
   }
 
-  saveCliente(cliente: Cliente): Observable<Cliente> {
+  saveCliente(cliente: any): Observable<Cliente> {
+    if (cliente.idCliente) {
+      return this.http.put<Cliente>(`${this.apiUrl}/clientes/${cliente.idCliente}`, cliente);
+    }
     return this.http.post<Cliente>(`${this.apiUrl}/clientes`, cliente);
   }
 
@@ -51,7 +57,10 @@ export class BarberiaService {
     return this.http.get<Servicio[]>(`${this.apiUrl}/servicios`);
   }
 
-  saveServicio(servicio: Servicio): Observable<Servicio> {
+  saveServicio(servicio: any): Observable<Servicio> {
+    if (servicio.idServicio) {
+      return this.http.put<Servicio>(`${this.apiUrl}/servicios/${servicio.idServicio}`, servicio);
+    }
     return this.http.post<Servicio>(`${this.apiUrl}/servicios`, servicio);
   }
 
@@ -96,7 +105,10 @@ export class BarberiaService {
     return this.http.get<Pago[]>(`${this.apiUrl}/pagos`);
   }
 
-  savePago(pago: Pago): Observable<Pago> {
+  savePago(pago: any): Observable<Pago> {
+    if (pago.idPago) {
+      return this.http.put<Pago>(`${this.apiUrl}/pagos/${pago.idPago}`, pago);
+    }
     return this.http.post<Pago>(`${this.apiUrl}/pagos`, pago);
   }
 
