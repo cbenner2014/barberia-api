@@ -22,8 +22,11 @@ public class ClienteController {
 
     // Listar todos pero usando proyecciones (Optimización de respuesta)
     @GetMapping
-    public ResponseEntity<List<ClienteProyeccion>> listarProyectado() {
-        return ResponseEntity.ok(clienteService.listarProyectado());
+    public ResponseEntity<List<ClienteProyeccion>> listarProyectado(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String email) {
+        return ResponseEntity.ok(clienteService.listarProyectado(nombre, telefono, email));
     }
 
     // Buscador Avanzado (Consultas Dinámicas)

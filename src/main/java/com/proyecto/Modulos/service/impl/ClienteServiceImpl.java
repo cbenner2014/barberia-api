@@ -73,8 +73,8 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<com.proyecto.Modulos.repository.ClienteProyeccion> listarProyectado() {
-        return clienteRepository.findAllProyectado();
+    public List<com.proyecto.Modulos.repository.ClienteProyeccion> listarProyectado(String nombre, String telefono, String email) {
+        return clienteRepository.findAllProyectado(nombre, telefono, email);
     }
 
     @Override

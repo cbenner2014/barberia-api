@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Barbero, Cliente, Servicio, Cita, Horario, Pago } from '../models/barberia.models';
 import { environment } from '../../../environments/environment';
@@ -13,8 +13,12 @@ export class BarberiaService {
   constructor(private http: HttpClient) {}
 
   // Barberos
-  getBarberos(): Observable<Barbero[]> {
-    return this.http.get<Barbero[]>(`${this.apiUrl}/barberos`);
+  getBarberos(filtros: any = {}): Observable<Barbero[]> {
+    let params = new HttpParams();
+    if (filtros.nombre) params = params.set('nombre', filtros.nombre);
+    if (filtros.edad) params = params.set('edad', filtros.edad);
+    if (filtros.email) params = params.set('email', filtros.email);
+    return this.http.get<Barbero[]>(`${this.apiUrl}/barberos`, { params });
   }
 
   getBarbero(id: number): Observable<Barbero> {
@@ -33,8 +37,12 @@ export class BarberiaService {
   }
 
   // Clientes
-  getClientes(): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(`${this.apiUrl}/clientes`);
+  getClientes(filtros: any = {}): Observable<Cliente[]> {
+    let params = new HttpParams();
+    if (filtros.nombre) params = params.set('nombre', filtros.nombre);
+    if (filtros.telefono) params = params.set('telefono', filtros.telefono);
+    if (filtros.email) params = params.set('email', filtros.email);
+    return this.http.get<Cliente[]>(`${this.apiUrl}/clientes`, { params });
   }
 
   getCliente(id: number): Observable<Cliente> {

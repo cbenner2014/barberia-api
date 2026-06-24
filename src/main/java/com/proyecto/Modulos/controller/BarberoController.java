@@ -22,8 +22,11 @@ public class BarberoController {
 
     // Listar todos pero usando proyecciones (Optimización de respuesta, sin contraseñas)
     @GetMapping
-    public ResponseEntity<List<BarberoProyeccion>> listarProyectado() {
-        return ResponseEntity.ok(barberoService.listarProyectado());
+    public ResponseEntity<List<BarberoProyeccion>> listarProyectado(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String edad,
+            @RequestParam(required = false) String email) {
+        return ResponseEntity.ok(barberoService.listarProyectado(nombre, edad, email));
     }
 
     // Buscador Avanzado (Consultas Dinámicas)

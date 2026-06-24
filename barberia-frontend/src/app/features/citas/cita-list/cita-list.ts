@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
@@ -74,15 +75,7 @@ import { Barbero, Cliente, Servicio, Cita, Rol } from '../../../core/models/barb
         </div>
         
         <form [formGroup]="citaForm" (ngSubmit)="guardar()">
-          <!-- Alerta de Errores del Backend -->
-          <div *ngIf="backendErrors" class="alert-error">
-            <strong>Errores desde el servidor (Spring Boot):</strong>
-            <ul>
-              <li *ngFor="let error of objectKeys(backendErrors)">
-                {{ backendErrors[error] }}
-              </li>
-            </ul>
-          </div>
+
           
           <!-- Cliente: Solo editable por ADMIN o si se está creando -->
           <div class="form-group" *ngIf="!authService.hasRole(Rol.CLIENTE)">
@@ -366,12 +359,13 @@ export class CitaListComponent implements OnInit {
 
     this.barberiaService.saveCita(dto).subscribe({
       next: () => {
+        Swal.fire({ title: '¡Éxito!', text: 'Guardado correctamente', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         this.mostrarModal = false;
         this.cargarDatos();
       },
       error: (err) => {
         if (err.status === 400 && err.error) {
-          this.backendErrors = err.error;
+          Swal.fire({ title: 'Error de validación', html: Object.values(err.error).map(e => `&bull; ${e}`).join('<br>'), icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         } else {
           alert('Error: ' + err.message);
         }

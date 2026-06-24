@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
@@ -14,9 +15,10 @@ import { Barbero } from '../../../core/models/barberia.models';
         <h2>Barberos</h2>
         
         <div class="header-actions">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Buscar..." (input)="onSearch($event)">
+          <div class="filters-group" style="display: flex; gap: 10px;">
+            <input type="text" placeholder="Buscar por Nombre" (input)="onSearchNombre($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
+            <input type="text" placeholder="Buscar por Edad" (input)="onSearchEdad($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
+            <input type="text" placeholder="Buscar por Email" (input)="onSearchEmail($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
           </div>
           <button class="btn btn-primary" (click)="abrirModal()">
           <i class="fas fa-plus"></i> Nuevo Barbero
@@ -36,7 +38,7 @@ import { Barbero } from '../../../core/models/barberia.models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let barbero of filteredData()">
+            <tr *ngFor="let barbero of barberos()">
               <td>{{ barbero.idBarbero }}</td>
               <td>{{ barbero.nombreBarbero }}</td>
               <td>{{ barbero.edadBarbero }}</td>
@@ -55,7 +57,7 @@ import { Barbero } from '../../../core/models/barberia.models';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="filteredData().length === 0">
+            <tr *ngIf="barberos().length === 0">
               <td colspan="5" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
                 No hay barberos registrados.
               </td>
@@ -74,22 +76,15 @@ import { Barbero } from '../../../core/models/barberia.models';
         </div>
         
         <form [formGroup]="barberoForm" (ngSubmit)="guardar()">
-          <!-- Alerta de Errores del Backend -->
-          <div *ngIf="backendErrors" class="alert-error">
-            <strong>Errores desde el servidor (Spring Boot):</strong>
-            <ul>
-              <li *ngFor="let error of objectKeys(backendErrors)">
-                {{ backendErrors[error] }}
-              </li>
-            </ul>
-          </div>
-          
           <div class="form-group">
             <label>Nombre Completo</label>
             <input type="text" formControlName="nombreBarbero" placeholder="Ej. Juan Perez" 
                    [class.invalid]="barberoForm.get('nombreBarbero')?.invalid && barberoForm.get('nombreBarbero')?.touched">
-            <small class="error-text" *ngIf="barberoForm.get('nombreBarbero')?.invalid && barberoForm.get('nombreBarbero')?.touched">
+            <small class="error-text" *ngIf="barberoForm.get('nombreBarbero')?.errors?.['required'] && barberoForm.get('nombreBarbero')?.touched">
               * El nombre es obligatorio.
+            </small>
+            <small class="error-text" *ngIf="barberoForm.get('nombreBarbero')?.errors?.['pattern'] && barberoForm.get('nombreBarbero')?.touched">
+              * Solo letras (sin números ni caracteres especiales).
             </small>
           </div>
           
@@ -247,23 +242,29 @@ import { Barbero } from '../../../core/models/barberia.models';
   `
 })
 export class BarberoListComponent implements OnInit {
+  public filtros = { nombre: '', edad: '', email: '' };
+
+  onSearchNombre(event: Event): void {
+    this.filtros.nombre = (event.target as HTMLInputElement).value;
+    this.cargarBarberos();
+  }
+  onSearchEdad(event: Event): void {
+    this.filtros.edad = (event.target as HTMLInputElement).value;
+    this.cargarBarberos();
+  }
+  onSearchEmail(event: Event): void {
+    this.filtros.email = (event.target as HTMLInputElement).value;
+    this.cargarBarberos();
+  }
+
   public barberos = signal<Barbero[]>([]);
   
   public searchQuery = signal('');
-  public filteredData = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    const data = this.barberos();
-    if (!query) return data;
-    return data.filter((item: any) => {
-      return Object.values(item).some(val => 
-        val && val.toString().toLowerCase().includes(query)
-      );
-    });
-  });
 
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchQuery.set(input.value);
+    this.cargarBarberos();
   }
 
   public mostrarModal = false;
@@ -284,7 +285,7 @@ export class BarberoListComponent implements OnInit {
   ) {
     this.barberoForm = this.fb.group({
       idBarbero: [null],
-      nombreBarbero: ['', [Validators.required]],
+      nombreBarbero: ['', [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$')]],
       edadBarbero: [null, [Validators.required, Validators.min(18)]],
       emailBarbero: ['', [Validators.required, Validators.email]],
       usuarioBarbero: ['', [Validators.required]],
@@ -297,7 +298,7 @@ export class BarberoListComponent implements OnInit {
   }
 
   cargarBarberos(): void {
-    this.barberiaService.getBarberos().subscribe({
+    this.barberiaService.getBarberos(this.filtros).subscribe({
       next: (data) => this.barberos.set(data),
       error: (error) => console.error('Error cargando barberos', error)
     });
@@ -325,15 +326,15 @@ export class BarberoListComponent implements OnInit {
     
     this.barberiaService.saveBarbero(this.barberoForm.value).subscribe({
       next: () => {
+        Swal.fire({ title: '¡Éxito!', text: 'Guardado correctamente', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         this.mostrarModal = false;
         this.cargarBarberos();
       },
       error: (err) => {
-        // Si el backend (Spring Boot) devuelve un 400 Bad Request por validaciones (@Valid)
         if (err.status === 400 && err.error) {
-          this.backendErrors = err.error; // Guardamos el JSON de errores
+          Swal.fire({ title: 'Error de validación', html: Object.values(err.error).map(e => `&bull; ${e}`).join('<br>'), icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         } else {
-          alert('Error al guardar: ' + err.message);
+          Swal.fire({ title: 'Error', text: 'Error al guardar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         }
       }
     });
@@ -346,11 +347,27 @@ export class BarberoListComponent implements OnInit {
   }
 
   eliminar(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este barbero?')) {
-      this.barberiaService.deleteBarbero(id).subscribe({
-        next: () => this.cargarBarberos(),
-        error: (err) => alert('Error al eliminar: ' + err.message)
-      });
-    }
+    Swal.fire({
+      title: '¿Eliminar este barbero?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff4d4d',
+      cancelButtonColor: '#444',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1a1a1a',
+      color: '#fff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.barberiaService.deleteBarbero(id).subscribe({
+          next: () => {
+            Swal.fire({ title: '¡Eliminado!', text: 'El registro ha sido eliminado.', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
+            this.cargarBarberos();
+          },
+          error: (err) => Swal.fire({ title: 'Error', text: 'Error al eliminar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' })
+        });
+      }
+    });
   }
 }

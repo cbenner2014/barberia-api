@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
@@ -13,9 +14,16 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
     <div class="module-container">
       <div class="module-header">
         <h2>Clientes</h2>
-        <button *ngIf="authService.hasRole(Rol.ADMIN)" class="btn btn-primary" (click)="abrirModal()">
-          <i class="fas fa-plus"></i> Nuevo Cliente
-        </button>
+        <div class="header-actions">
+          <div class="filters-group" style="display: flex; gap: 10px;">
+            <input type="text" placeholder="Buscar por Nombre" (input)="onSearchNombre($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
+            <input type="text" placeholder="Buscar por Teléfono" (input)="onSearchTelefono($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
+            <input type="text" placeholder="Buscar por Email" (input)="onSearchEmail($event)" style="padding: 8px; border-radius: 5px; border: none; outline: none; background: #2a2a2a; color: white;">
+          </div>
+          <button *ngIf="authService.hasRole(Rol.ADMIN)" class="btn btn-primary" (click)="abrirModal()">
+            <i class="fas fa-plus"></i> Nuevo Cliente
+          </button>
+        </div>
       </div>
       
       <div class="table-card glass">
@@ -30,7 +38,7 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let cliente of filteredData()">
+            <tr *ngFor="let cliente of clientes()">
               <td>{{ cliente.idCliente }}</td>
               <td>{{ cliente.nombreCliente }}</td>
               <td>{{ cliente.telefonoCliente }}</td>
@@ -49,7 +57,7 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="filteredData().length === 0">
+            <tr *ngIf="clientes().length === 0">
               <td [attr.colspan]="authService.hasRole(Rol.ADMIN) ? 5 : 4" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
                 No hay clientes registrados.
               </td>
@@ -68,22 +76,15 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
         </div>
         
         <form [formGroup]="clienteForm" (ngSubmit)="guardar()">
-          <!-- Alerta de Errores del Backend -->
-          <div *ngIf="backendErrors" class="alert-error">
-            <strong>Errores desde el servidor (Spring Boot):</strong>
-            <ul>
-              <li *ngFor="let error of objectKeys(backendErrors)">
-                {{ backendErrors[error] }}
-              </li>
-            </ul>
-          </div>
-          
           <div class="form-group">
             <label>Nombre Completo</label>
             <input type="text" formControlName="nombreCliente" placeholder="Ej. Ana García"
                    [class.invalid]="clienteForm.get('nombreCliente')?.invalid && clienteForm.get('nombreCliente')?.touched">
-            <small class="error-text" *ngIf="clienteForm.get('nombreCliente')?.invalid && clienteForm.get('nombreCliente')?.touched">
+            <small class="error-text" *ngIf="clienteForm.get('nombreCliente')?.errors?.['required'] && clienteForm.get('nombreCliente')?.touched">
               * El nombre es obligatorio.
+            </small>
+            <small class="error-text" *ngIf="clienteForm.get('nombreCliente')?.errors?.['pattern'] && clienteForm.get('nombreCliente')?.touched">
+              * Solo letras (sin números ni caracteres especiales).
             </small>
           </div>
           
@@ -92,8 +93,11 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
               <label>Teléfono</label>
               <input type="text" formControlName="telefonoCliente" placeholder="Ej. 999 888 777"
                      [class.invalid]="clienteForm.get('telefonoCliente')?.invalid && clienteForm.get('telefonoCliente')?.touched">
-              <small class="error-text" *ngIf="clienteForm.get('telefonoCliente')?.invalid && clienteForm.get('telefonoCliente')?.touched">
+              <small class="error-text" *ngIf="clienteForm.get('telefonoCliente')?.errors?.['required'] && clienteForm.get('telefonoCliente')?.touched">
                 * Teléfono requerido.
+              </small>
+              <small class="error-text" *ngIf="clienteForm.get('telefonoCliente')?.errors?.['pattern'] && clienteForm.get('telefonoCliente')?.touched">
+                * Solo números permitidos.
               </small>
             </div>
             
@@ -229,21 +233,19 @@ import { Cliente, Rol } from '../../../core/models/barberia.models';
 export class ClienteListComponent implements OnInit {
   public clientes = signal<Cliente[]>([]);
   
-  public searchQuery = signal('');
-  public filteredData = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    const data = this.clientes();
-    if (!query) return data;
-    return data.filter((item: any) => {
-      return Object.values(item).some(val => 
-        val && val.toString().toLowerCase().includes(query)
-      );
-    });
-  });
+  public filtros = { nombre: '', telefono: '', email: '' };
 
-  onSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchQuery.set(input.value);
+  onSearchNombre(event: Event): void {
+    this.filtros.nombre = (event.target as HTMLInputElement).value;
+    this.cargarClientes();
+  }
+  onSearchTelefono(event: Event): void {
+    this.filtros.telefono = (event.target as HTMLInputElement).value;
+    this.cargarClientes();
+  }
+  onSearchEmail(event: Event): void {
+    this.filtros.email = (event.target as HTMLInputElement).value;
+    this.cargarClientes();
   }
 
   public mostrarModal = false;
@@ -265,8 +267,8 @@ export class ClienteListComponent implements OnInit {
   ) {
     this.clienteForm = this.fb.group({
       idCliente: [null],
-      nombreCliente: ['', [Validators.required]],
-      telefonoCliente: ['', [Validators.required]],
+      nombreCliente: ['', [Validators.required, Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$')]],
+      telefonoCliente: ['', [Validators.required, Validators.pattern('^[0-9+ ]+$')]],
       emailCliente: ['', [Validators.required, Validators.email]]
     });
   }
@@ -276,7 +278,7 @@ export class ClienteListComponent implements OnInit {
   }
 
   cargarClientes(): void {
-    this.barberiaService.getClientes().subscribe({
+    this.barberiaService.getClientes(this.filtros).subscribe({
       next: (data) => this.clientes.set(data),
       error: (error) => console.error('Error cargando clientes', error)
     });
@@ -299,14 +301,15 @@ export class ClienteListComponent implements OnInit {
     this.backendErrors = null;
     this.barberiaService.saveCliente(this.clienteForm.value).subscribe({
       next: () => {
+        Swal.fire({ title: '¡Éxito!', text: 'Guardado correctamente', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         this.mostrarModal = false;
         this.cargarClientes();
       },
       error: (err) => {
         if (err.status === 400 && err.error) {
-          this.backendErrors = err.error;
+          Swal.fire({ title: 'Error de validación', html: Object.values(err.error).map(e => `&bull; ${e}`).join('<br>'), icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         } else {
-          alert('Error al guardar: ' + err.message);
+          Swal.fire({ title: 'Error', text: 'Error al guardar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         }
       }
     });
@@ -319,11 +322,27 @@ export class ClienteListComponent implements OnInit {
   }
 
   eliminar(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este cliente?')) {
-      this.barberiaService.deleteCliente(id).subscribe({
-        next: () => this.cargarClientes(),
-        error: (err) => alert('Error al eliminar: ' + err.message)
-      });
-    }
+    Swal.fire({
+      title: '¿Eliminar este cliente?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff4d4d',
+      cancelButtonColor: '#444',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1a1a1a',
+      color: '#fff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.barberiaService.deleteCliente(id).subscribe({
+          next: () => {
+            Swal.fire({ title: '¡Eliminado!', text: 'El registro ha sido eliminado.', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
+            this.cargarClientes();
+          },
+          error: (err) => Swal.fire({ title: 'Error', text: 'Error al eliminar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' })
+        });
+      }
+    });
   }
 }

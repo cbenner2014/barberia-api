@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BarberiaService } from '../../../core/services/barberia.service';
@@ -74,15 +75,7 @@ import { Servicio } from '../../../core/models/barberia.models';
         </div>
         
         <form [formGroup]="servicioForm" (ngSubmit)="guardar()">
-          <!-- Alerta de Errores del Backend -->
-          <div *ngIf="backendErrors" class="alert-error">
-            <strong>Errores desde el servidor (Spring Boot):</strong>
-            <ul>
-              <li *ngFor="let error of objectKeys(backendErrors)">
-                {{ backendErrors[error] }}
-              </li>
-            </ul>
-          </div>
+
 
           <div class="form-group">
             <label>Nombre del Servicio</label>
@@ -290,14 +283,15 @@ export class ServicioListComponent implements OnInit {
     this.backendErrors = null;
     this.barberiaService.saveServicio(this.servicioForm.value).subscribe({
       next: () => {
+        Swal.fire({ title: '¡Éxito!', text: 'Guardado correctamente', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         this.mostrarModal = false;
         this.cargarServicios();
       },
       error: (err) => {
         if (err.status === 400 && err.error) {
-          this.backendErrors = err.error;
+          Swal.fire({ title: 'Error de validación', html: Object.values(err.error).map(e => `&bull; ${e}`).join('<br>'), icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         } else {
-          alert('Error al guardar: ' + err.message);
+          Swal.fire({ title: 'Error', text: 'Error al guardar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
         }
       }
     });
@@ -310,11 +304,24 @@ export class ServicioListComponent implements OnInit {
   }
 
   eliminar(id: number): void {
-    if (confirm('¿Estás seguro de eliminar este servicio?')) {
+    Swal.fire({
+      title: '¿Eliminar este servicio??',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff4d4d',
+      cancelButtonColor: '#444',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: '#1a1a1a',
+      color: '#fff'
+    }).then((result) => {
+      if (result.isConfirmed) {
       this.barberiaService.deleteServicio(id).subscribe({
         next: () => this.cargarServicios(),
-        error: (err) => alert('Error al eliminar: ' + err.message)
+        error: (err) => Swal.fire({ title: 'Error', text: 'Error al eliminar: ' + err.message, icon: 'error', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' })
       });
-    }
+      }
+    });
   }
 }

@@ -79,8 +79,8 @@ public class BarberoServiceImpl implements BarberoService {
     }
 
     @Override
-    public List<com.proyecto.Modulos.repository.BarberoProyeccion> listarProyectado() {
-        return barberoRepository.findAllProyectado();
+    public List<com.proyecto.Modulos.repository.BarberoProyeccion> listarProyectado(String nombre, String edad, String email) {
+        return barberoRepository.findAllProyectado(nombre, edad, email);
     }
 
     @Override
