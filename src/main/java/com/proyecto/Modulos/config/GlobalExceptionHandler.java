@@ -57,6 +57,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errors);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", "Error de duplicidad");
+        errors.put("message", "El correo o usuario ya se encuentra registrado.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         Map<String, String> errors = new HashMap<>();

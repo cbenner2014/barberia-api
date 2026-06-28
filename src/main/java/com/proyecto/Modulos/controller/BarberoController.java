@@ -49,7 +49,13 @@ public class BarberoController {
 
     // Crear barbero con Validación estricta (@Valid)
     @PostMapping
-    public ResponseEntity<Barbero> guardar(@Valid @RequestBody BarberoDTO dto) {
+    public ResponseEntity<?> guardar(@Valid @RequestBody BarberoDTO dto) {
+        if (dto.getContrasenaBarbero() == null || dto.getContrasenaBarbero().isBlank()) {
+            java.util.Map<String, String> errors = new java.util.HashMap<>();
+            errors.put("contrasenaBarbero", "La contraseña es obligatoria");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+        }
+
         Barbero barbero = new Barbero();
         barbero.setNombreBarbero(dto.getNombreBarbero());
         barbero.setEdadBarbero(dto.getEdadBarbero());

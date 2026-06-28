@@ -116,12 +116,21 @@ import { Barbero } from '../../../core/models/barberia.models';
               <label>Usuario</label>
               <input type="text" formControlName="usuarioBarbero" placeholder="juanp01"
                      [class.invalid]="barberoForm.get('usuarioBarbero')?.invalid && barberoForm.get('usuarioBarbero')?.touched">
+              <small class="error-text" *ngIf="barberoForm.get('usuarioBarbero')?.errors?.['required'] && barberoForm.get('usuarioBarbero')?.touched">
+                * El usuario es obligatorio.
+              </small>
             </div>
             
             <div class="form-group">
-              <label>Contraseña</label>
+              <label>Contraseña <span *ngIf="editando" style="font-size: 0.8em; color: #ffb703; font-weight: normal;">(Opcional)</span></label>
               <input type="password" formControlName="contrasenaBarbero" placeholder="******"
                      [class.invalid]="barberoForm.get('contrasenaBarbero')?.invalid && barberoForm.get('contrasenaBarbero')?.touched">
+              <small class="error-text" *ngIf="barberoForm.get('contrasenaBarbero')?.errors?.['required'] && barberoForm.get('contrasenaBarbero')?.touched">
+                * La contraseña es obligatoria.
+              </small>
+              <small *ngIf="editando" style="color: rgba(255,255,255,0.5); font-size: 0.8rem; display: block; margin-top: 5px;">
+                Déjalo en blanco para mantener la contraseña actual. Si escribes algo, se cambiará.
+              </small>
             </div>
           </div>
 
@@ -313,6 +322,8 @@ export class BarberoListComponent implements OnInit {
   abrirModal(): void {
     this.editando = false;
     this.barberoForm.reset();
+    this.barberoForm.get('contrasenaBarbero')?.setValidators([Validators.required]);
+    this.barberoForm.get('contrasenaBarbero')?.updateValueAndValidity();
     this.backendErrors = null;
     this.mostrarModal = true;
   }
@@ -322,8 +333,11 @@ export class BarberoListComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.barberoForm.invalid) {
+      this.barberoForm.markAllAsTouched();
+      return;
+    }
     this.backendErrors = null; // Limpiar errores anteriores
-    
     this.barberiaService.saveBarbero(this.barberoForm.value).subscribe({
       next: () => {
         Swal.fire({ title: '¡Éxito!', text: 'Guardado correctamente', icon: 'success', confirmButtonColor: '#ffb703', background: '#1a1a1a', color: '#fff' });
@@ -342,7 +356,10 @@ export class BarberoListComponent implements OnInit {
 
   editar(barbero: Barbero): void {
     this.editando = true;
+    this.barberoForm.reset();
     this.barberoForm.patchValue(barbero);
+    this.barberoForm.get('contrasenaBarbero')?.clearValidators();
+    this.barberoForm.get('contrasenaBarbero')?.updateValueAndValidity();
     this.mostrarModal = true;
   }
 

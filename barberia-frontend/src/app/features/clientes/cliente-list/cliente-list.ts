@@ -298,6 +298,10 @@ export class ClienteListComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.clienteForm.invalid) {
+      this.clienteForm.markAllAsTouched();
+      return;
+    }
     this.backendErrors = null;
     this.barberiaService.saveCliente(this.clienteForm.value).subscribe({
       next: () => {
@@ -317,6 +321,7 @@ export class ClienteListComponent implements OnInit {
 
   editar(cliente: Cliente): void {
     this.editando = true;
+    this.clienteForm.reset();
     this.clienteForm.patchValue(cliente);
     this.mostrarModal = true;
   }

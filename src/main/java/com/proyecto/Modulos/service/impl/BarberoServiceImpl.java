@@ -35,8 +35,22 @@ public class BarberoServiceImpl implements BarberoService {
         boolean esNuevo = (barbero.getIdBarbero() == null);
         
         // Asegurar contraseña por defecto si viene vacía
-        if (barbero.getContrasenaBarbero() == null || barbero.getContrasenaBarbero().isEmpty()) {
-            barbero.setContrasenaBarbero("123456");
+        String rawPassword = barbero.getContrasenaBarbero();
+        if (rawPassword == null || rawPassword.isEmpty()) {
+            if (esNuevo) {
+                barbero.setContrasenaBarbero(passwordEncoder.encode("123456"));
+            } else {
+                // Si es actualización y viene vacía, conservamos la antigua
+                Barbero barberoAntiguo = buscarPorId(barbero.getIdBarbero());
+                if (barberoAntiguo != null) {
+                    barbero.setContrasenaBarbero(barberoAntiguo.getContrasenaBarbero());
+                }
+            }
+        } else {
+            // Si viene una contraseña, la encriptamos si no lo está ya
+            if (!rawPassword.startsWith("$2a$") && !rawPassword.startsWith("$2b$")) {
+                barbero.setContrasenaBarbero(passwordEncoder.encode(rawPassword));
+            }
         }
         
         Barbero barberoGuardado = barberoRepository.save(barbero);
@@ -48,7 +62,7 @@ public class BarberoServiceImpl implements BarberoService {
             // Si no existe usuario para este barbero, lo creamos
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setUsername(barberoGuardado.getUsuarioBarbero() != null ? barberoGuardado.getUsuarioBarbero() : barberoGuardado.getEmailBarbero());
-            nuevoUsuario.setPassword(passwordEncoder.encode(barberoGuardado.getContrasenaBarbero()));
+            nuevoUsuario.setPassword(barberoGuardado.getContrasenaBarbero()); // Ya está encriptada arriba
             nuevoUsuario.setRol(Rol.BARBERO);
             nuevoUsuario.setBarbero(barberoGuardado);
             usuarioRepository.save(nuevoUsuario);
@@ -56,7 +70,7 @@ public class BarberoServiceImpl implements BarberoService {
             // Si ya existe, actualizamos los datos
             Usuario u = usuarioExistente.get();
             if (barberoGuardado.getUsuarioBarbero() != null) u.setUsername(barberoGuardado.getUsuarioBarbero());
-            if (barberoGuardado.getContrasenaBarbero() != null) u.setPassword(barberoGuardado.getContrasenaBarbero());
+            if (barberoGuardado.getContrasenaBarbero() != null) u.setPassword(barberoGuardado.getContrasenaBarbero()); // Ya está encriptada arriba
             usuarioRepository.save(u);
         }
 
