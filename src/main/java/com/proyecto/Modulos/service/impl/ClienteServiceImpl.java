@@ -32,6 +32,12 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     @Transactional
     public Cliente guardar(Cliente cliente) {
+        // Validar correo duplicado
+        Optional<Cliente> clienteExistente = clienteRepository.findFirstByEmailCliente(cliente.getEmailCliente());
+        if (clienteExistente.isPresent() && !clienteExistente.get().getIdCliente().equals(cliente.getIdCliente())) {
+            throw new org.springframework.dao.DataIntegrityViolationException("El correo ya se encuentra registrado.");
+        }
+
         boolean esNuevo = (cliente.getIdCliente() == null);
         Cliente clienteGuardado = clienteRepository.save(cliente);
 

@@ -60,8 +60,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("error", "Error de duplicidad");
-        errors.put("message", "El correo o usuario ya se encuentra registrado.");
+        String rootMsg = ex.getRootCause() != null ? ex.getRootCause().getMessage().toLowerCase() : "";
+        String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+        
+        if (msg.contains("correo") || rootMsg.contains("correo") || rootMsg.contains("email")) {
+            errors.put("error", "El correo ya se encuentra registrado.");
+        } else if (msg.contains("usuario") || rootMsg.contains("usuario") || rootMsg.contains("username")) {
+            errors.put("error", "El nombre de usuario ya se encuentra registrado.");
+        } else {
+            errors.put("error", "Un dato único ya se encuentra registrado.");
+        }
+        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 

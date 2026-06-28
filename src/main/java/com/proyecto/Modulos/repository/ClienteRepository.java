@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Integer>, JpaSpecificationExecutor<Cliente> {
+    Optional<Cliente> findFirstByEmailCliente(String email);
 
     @Query("SELECT c.idCliente as idCliente, c.nombreCliente as nombreCliente, c.telefonoCliente as telefonoCliente, c.emailCliente as emailCliente FROM Cliente c " +
            "WHERE (:nombre IS NULL OR :nombre = '' OR LOWER(c.nombreCliente) LIKE LOWER(CONCAT('%', :nombre, '%'))) " +

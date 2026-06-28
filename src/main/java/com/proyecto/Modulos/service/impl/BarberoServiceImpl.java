@@ -32,6 +32,12 @@ public class BarberoServiceImpl implements BarberoService {
     @Override
     @Transactional
     public Barbero guardar(Barbero barbero) {
+        // Validar correo duplicado
+        Optional<Barbero> barberoExistente = barberoRepository.findFirstByEmailBarbero(barbero.getEmailBarbero());
+        if (barberoExistente.isPresent() && !barberoExistente.get().getIdBarbero().equals(barbero.getIdBarbero())) {
+            throw new org.springframework.dao.DataIntegrityViolationException("El correo ya se encuentra registrado.");
+        }
+        
         boolean esNuevo = (barbero.getIdBarbero() == null);
         
         // Asegurar contraseña por defecto si viene vacía
